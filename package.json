@@ -1,0 +1,32 @@
+{
+  "name": "@vonage/vonage-mcp-server-api-bindings",
+  "version": "0.0.2",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "vonage-mcp-server": "./build/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc && chmod +x build/index.js"
+  },
+  "files": [
+    "build"
+  ],
+  "keywords": [],
+  "author": "Dwane Hemmings",
+  "license": "ISC",
+  "description": "MCP server to interact with Vonage APIs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.1",
+    "@vonage/messages": "^1.20.1",
+    "@vonage/server-sdk": "^3.22.1",
+    "@vonage/voice": "^1.18.0",
+    "dotenv": "^17.2.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.14",
+    "typescript": "^5.8.3"
+  }
+}
