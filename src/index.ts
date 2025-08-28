@@ -1,23 +1,21 @@
-#!/usr/bin/env node
 import 'dotenv/config';
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { Vonage } from '@vonage/server-sdk';
+import { Auth } from '@vonage/auth';
 import { Channels, MessageTypes } from '@vonage/messages';
 import { NCCOBuilder, Talk } from '@vonage/voice';
 
 const appId = process.env.VONAGE_APPLICATION_ID
 const privateKey = Buffer.from(process.env.VONAGE_PRIVATE_KEY64!, 'base64');
 
-const vonage = new Vonage(
-  {
-    applicationId: appId,
-    privateKey: privateKey,
-    apiKey: process.env.VONAGE_API_KEY,
-    apiSecret: process.env.VONAGE_API_SECRET,
-  }
-);
+const vonage = new Vonage(new Auth({
+  apiKey: process.env.VONAGE_API_KEY!,
+  apiSecret: process.env.VONAGE_API_SECRET!,
+  applicationId: appId!,
+  privateKey: privateKey
+}));
 
 const virtualNumber = process.env.VONAGE_VIRTUAL_NUMBER;
 
@@ -64,7 +62,7 @@ server.registerTool("balance",
       return {
         content: [{
           type: "text",
-          text: `Error getting balance: ${error.message || error}`
+          text: `Error getting balance: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`
         }]
       };
     }
@@ -118,7 +116,6 @@ server.registerTool("SMS",
   }
 );
 
-
 // Send an Outbound Voice Message
 server.registerTool("outbound-voice-message",
   {
@@ -170,6 +167,25 @@ server.registerTool("outbound-voice-message",
         }]
       };
     }
+  }
+);
+
+server.registerTool("list-applications",
+  {
+    title: "List my applications",
+    description: "List out the applications that are attached to my API key",
+    inputSchema: {  }
+  },
+  async () => {
+  const apps = await vonage.applications.listApplications({});
+
+      // On success, return the content object
+      return {
+        content: [{
+          type: "text",
+          text: `Applications: ${JSON.stringify(apps)}`
+        }]
+      };
   }
 );
 
