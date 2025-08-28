@@ -208,6 +208,66 @@ server.registerTool("list-purchased-numbers",
   }
 );
 
+server.registerTool("link-number-to-vonage-application",
+  {
+    title: "Link an owned number to the assigned Vonage Application",
+    description: "Link an owned number to the assigned Vonage Application",
+    inputSchema: { 
+      msisdn: z.string().describe("The phone number to link to the Vonage Application, in E.164 format, e.g. +12025550123"),
+      applicationId: z.string().describe("The Vonage Application ID to link the number to")
+     }
+  },
+  async ({msisdn, applicationId}) => {
+    applicationId = applicationId.replace(/\s+/g, '');
+    const numbers = await vonage.numbers.getOwnedNumbers({
+      pattern: msisdn,
+      searchPattern: 0
+    });
+
+    if (!numbers || numbers.numbers.length === 0) {
+      return {
+        content: [{
+          type: "text",
+          text: `I could not find the number "${msisdn}" attached to your account.`
+        }]
+      };
+    }
+
+    const number = numbers.numbers[0];
+    if (number.app_id === applicationId) {
+      return {
+        content: [{
+          type: "text",
+          text: `The number "${msisdn}" is already linked to the Vonage Application ID ${applicationId}.`
+        }]
+      };
+    }
+
+    const newData = {
+      country: number.country,
+      msisdn: number.msisdn,
+      app_id: applicationId,
+      moHttpUrl: number.moHttpUrl,
+      moSmppSysType: number.moSmppSysType,
+      voiceCallbackType: number.voiceCallbackType,
+      voiceCallbackValue: applicationId,
+      voiceStatusCallback: number.voiceStatusCallback,
+      messagesCallbackType: number.messagesCallbackType,
+      messagesCallbackValue: number.messagesCallbackValue,
+    }
+
+    const response = await vonage.numbers.updateNumber(newData);
+
+    // On success, return the content object
+    return {
+      content: [{
+        type: "text",
+        text: `Response: ${JSON.stringify(response)}`
+        }]
+      };
+  }
+);
+
 
 // Start receiving messages on stdin and sending messages on stdout
 const transport = new StdioServerTransport();
