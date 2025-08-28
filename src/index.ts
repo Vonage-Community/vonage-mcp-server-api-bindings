@@ -1,23 +1,21 @@
-#!/usr/bin/env node
 import 'dotenv/config';
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { Vonage } from '@vonage/server-sdk';
+import { Auth } from '@vonage/auth';
 import { Channels, MessageTypes } from '@vonage/messages';
 import { NCCOBuilder, Talk } from '@vonage/voice';
 
 const appId = process.env.VONAGE_APPLICATION_ID
 const privateKey = Buffer.from(process.env.VONAGE_PRIVATE_KEY64!, 'base64');
 
-const vonage = new Vonage(
-  {
-    applicationId: appId,
-    privateKey: privateKey,
-    apiKey: process.env.VONAGE_API_KEY,
-    apiSecret: process.env.VONAGE_API_SECRET,
-  }
-);
+const vonage = new Vonage(new Auth({
+  apiKey: process.env.VONAGE_API_KEY!,
+  apiSecret: process.env.VONAGE_API_SECRET!,
+  applicationId: appId!,
+  privateKey: privateKey
+}));
 
 const virtualNumber = process.env.VONAGE_VIRTUAL_NUMBER;
 
@@ -64,7 +62,7 @@ server.registerTool("balance",
       return {
         content: [{
           type: "text",
-          text: `Error getting balance: ${error.message || error}`
+          text: `Error getting balance: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`
         }]
       };
     }
@@ -118,7 +116,6 @@ server.registerTool("SMS",
   }
 );
 
-
 // Send an Outbound Voice Message
 server.registerTool("outbound-voice-message",
   {
@@ -170,6 +167,104 @@ server.registerTool("outbound-voice-message",
         }]
       };
     }
+  }
+);
+
+server.registerTool("list-applications",
+  {
+    title: "List my applications",
+    description: "List out the applications that are attached to my API key",
+    inputSchema: {  }
+  },
+  async () => {
+  const apps = await vonage.applications.listApplications({});
+
+      // On success, return the content object
+      return {
+        content: [{
+          type: "text",
+          text: `Applications: ${JSON.stringify(apps)}`
+        }]
+      };
+  }
+);
+
+server.registerTool("list-purchased-numbers",
+  {
+    title: "List the telephone numbers associated with my Vonage Account",
+    description: "List of the telephone numbers that are currently associated with my account and their metadata",
+    inputSchema: {  }
+  },
+  async () => {
+    const numbers = await vonage.numbers.getOwnedNumbers();
+
+      // On success, return the content object
+      return {
+        content: [{
+          type: "text",
+          text: `Numbers: ${JSON.stringify(numbers)}`
+        }]
+      };
+  }
+);
+
+server.registerTool("link-number-to-vonage-application",
+  {
+    title: "Link an owned number to the assigned Vonage Application",
+    description: "Link an owned number to the assigned Vonage Application",
+    inputSchema: { 
+      msisdn: z.string().describe("The phone number to link to the Vonage Application, in E.164 format, e.g. +12025550123"),
+      applicationId: z.string().describe("The Vonage Application ID to link the number to")
+     }
+  },
+  async ({msisdn, applicationId}) => {
+    applicationId = applicationId.replace(/\s+/g, '');
+    const numbers = await vonage.numbers.getOwnedNumbers({
+      pattern: msisdn,
+      searchPattern: 0
+    });
+
+    if (!numbers || numbers.numbers.length === 0) {
+      return {
+        content: [{
+          type: "text",
+          text: `I could not find the number "${msisdn}" attached to your account.`
+        }]
+      };
+    }
+
+    const number = numbers.numbers[0];
+    if (number.app_id === applicationId) {
+      return {
+        content: [{
+          type: "text",
+          text: `The number "${msisdn}" is already linked to the Vonage Application ID ${applicationId}.`
+        }]
+      };
+    }
+
+    const newData = {
+      country: number.country,
+      msisdn: number.msisdn,
+      app_id: applicationId,
+      moHttpUrl: number.moHttpUrl,
+      moSmppSysType: number.moSmppSysType,
+      voiceCallbackType: number.voiceCallbackType,
+      voiceCallbackValue: applicationId,
+      voiceStatusCallback: number.voiceStatusCallback,
+      messagesCallbackType: number.messagesCallbackType,
+      messagesCallbackValue: number.messagesCallbackValue,
+    }
+
+    const response = await vonage.numbers.updateNumber(newData);
+
+    // On success, return the content object
+    return {
+      content: [{
+        type: "text",
+        text: `Response: ${JSON.stringify(response)}`
+        }]
+      };
   }
 );
 
