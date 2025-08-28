@@ -189,6 +189,25 @@ server.registerTool("list-applications",
   }
 );
 
+server.registerTool("list-purchased-numbers",
+  {
+    title: "List the telephone numbers associated with my Vonage Account",
+    description: "List of the telephone numbers that are currently associated with my account and their metadata",
+    inputSchema: {  }
+  },
+  async () => {
+    const numbers = await vonage.numbers.getOwnedNumbers();
+
+      // On success, return the content object
+      return {
+        content: [{
+          type: "text",
+          text: `Numbers: ${JSON.stringify(numbers)}`
+        }]
+      };
+  }
+);
+
 
 // Start receiving messages on stdin and sending messages on stdout
 const transport = new StdioServerTransport();
