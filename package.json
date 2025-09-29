@@ -8,7 +8,13 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && chmod +x build/index.js"
+    "build": "tsc && chmod +x build/index.js",
+    "clean": "rm -rf build",
+    "prebuild": "npm run clean",
+    "prepack": "npm run build",
+    "dev": "tsc --watch",
+    "start": "node build/index.js",
+    "prepare": "npm run build"
   },
   "files": [
     "build"
