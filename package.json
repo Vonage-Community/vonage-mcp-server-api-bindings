@@ -1,6 +1,6 @@
 {
   "name": "@vonage/vonage-mcp-server-api-bindings",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "index.js",
   "type": "module",
   "bin": {
@@ -28,7 +28,7 @@
   ],
   "keywords": [],
   "author": "Dwane Hemmings",
-  "license": "ISC",
+  "license": "Apache 2.0",
   "description": "MCP server to interact with Vonage APIs",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.1",
