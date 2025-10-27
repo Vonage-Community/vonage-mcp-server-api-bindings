@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -60,11 +60,11 @@ jobs:
           release_name: Release ${{ github.ref_name }}
           body: |
             ## Changes in this Release
-            
+
             See the [CHANGELOG](./CHANGELOG.md) for detailed information about this release.
-            
+
             ## Installation
-            
+
             ```bash
             npm install @vonage/vonage-mcp-server-api-bindings@${{ github.ref_name }}
             ```

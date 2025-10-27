@@ -2,18 +2,17 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node-version: [18, 20, 22]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,9 +26,14 @@ jobs:
       - name: Install dependencies
         run: make install
 
-      - name: Run linting (if configured)
+      - name: Check code formatting
+        run: make format-check
+
+      - name: Run linting
         run: make lint
-        continue-on-error: true
+
+      - name: Run type checking
+        run: make typecheck
 
       - name: Run tests
         run: make test
@@ -50,7 +54,7 @@ jobs:
   package-validation:
     runs-on: ubuntu-latest
     needs: build-and-test
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -63,6 +67,9 @@ jobs:
 
       - name: Install dependencies
         run: make install
+
+      - name: Run all quality checks
+        run: make check
 
       - name: Build package
         run: make build

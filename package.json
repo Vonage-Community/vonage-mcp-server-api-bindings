@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "bin": {
-    "vonage-mcp-server": "./build/index.js"
+    "vonage-mcp-server": "build/index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,7 +14,14 @@
     "prepack": "npm run build",
     "dev": "tsc --watch",
     "start": "node build/index.js",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run format:check && npm run lint && npm run typecheck",
+    "fix": "npm run format && npm run lint:fix"
   },
   "files": [
     "build"
@@ -33,6 +40,12 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.14",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.0",
     "typescript": "^5.8.3"
   }
 }
