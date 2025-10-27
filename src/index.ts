@@ -7,8 +7,11 @@ import { Auth } from '@vonage/auth';
 import { Channels, MessageTypes } from '@vonage/messages';
 import { NCCOBuilder, Talk } from '@vonage/voice';
 
-const appId = process.env.VONAGE_APPLICATION_ID;
-const privateKey = Buffer.from(process.env.VONAGE_PRIVATE_KEY64!, 'base64');
+const appId = process.env.VONAGE_APPLICATION_ID || '';
+const privateKey = Buffer.from(
+  process.env.VONAGE_PRIVATE_KEY64 || '',
+  'base64'
+);
 
 const vonage = new Vonage(
   new Auth({
