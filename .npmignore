@@ -1,0 +1,41 @@
+# Source files
+src/
+tsconfig.json
+
+# Development files
+.vscode/
+.github/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Git files
+.git/
+.gitignore
