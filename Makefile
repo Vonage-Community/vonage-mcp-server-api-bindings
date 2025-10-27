@@ -31,6 +31,27 @@ start: ## Start the built application
 	npm run start
 
 # Quality checks
+format: ## Format code with Prettier
+	npm run format
+
+format-check: ## Check code formatting
+	npm run format:check
+
+lint: ## Run ESLint
+	npm run lint
+
+lint-fix: ## Fix ESLint issues
+	npm run lint:fix
+
+typecheck: ## Run TypeScript type checking
+	npm run typecheck
+
+check: ## Run all quality checks (format, lint, typecheck)
+	npm run check
+
+fix: ## Fix all auto-fixable issues (format and lint)
+	npm run fix
+
 check-clean: ## Check if working directory is clean
 	@if [ -n "$$(git status --porcelain)" ]; then \
 		echo "❌ Working directory is not clean. Please commit or stash changes."; \
@@ -58,6 +79,8 @@ pre-release: check-branch check-clean ## Run all pre-release checks
 	@echo "🔍 Running pre-release checks..."
 	@echo "📥 Pulling latest changes..."
 	git pull origin main
+	@echo "🎨 Checking code formatting..."
+	$(MAKE) check
 	@echo "🧪 Running tests..."
 	$(MAKE) test
 	@echo "🔨 Building project..."
@@ -108,6 +131,7 @@ setup: ## Initial project setup
 validate: ## Validate the package without publishing
 	@echo "✅ Validating package structure..."
 	@node -e "const pkg = require('./package.json'); console.log('Package:', pkg.name, 'v' + pkg.version)"
+	$(MAKE) check
 	$(MAKE) build
 	npm publish --dry-run
 	@echo "✅ Package validation passed"
