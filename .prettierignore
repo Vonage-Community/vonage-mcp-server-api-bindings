@@ -1,0 +1,23 @@
+# Ignore build artifacts
+build/
+dist/
+node_modules/
+
+# Ignore package files
+package-lock.json
+*.tgz
+
+# Ignore git files
+.git/
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore log files
+*.log
+npm-debug.log*
