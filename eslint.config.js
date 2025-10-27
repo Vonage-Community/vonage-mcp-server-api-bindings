@@ -4,7 +4,6 @@ import tsparser from '@typescript-eslint/parser';
 import prettier from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
 import globals from 'globals';
-import { glob } from 'fs';
 
 export default [
   js.configs.recommended,
