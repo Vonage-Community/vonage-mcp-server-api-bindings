@@ -1,8 +1,7 @@
 {
   "name": "@vonage/vonage-mcp-server-api-bindings",
   "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
+  "main": "build/index.js",
   "bin": {
     "vonage-mcp-server": "build/index.js"
   },
