@@ -5,7 +5,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { Vonage } from '@vonage/server-sdk';
 import { Auth } from '@vonage/auth';
-import { Channels, MessageTypes } from '@vonage/messages';
+import { Channels, MessageTypes, WhatsAppText } from '@vonage/messages';
 import { NCCOBuilder, Talk } from '@vonage/voice';
 
 const appId = process.env.VONAGE_APPLICATION_ID || '';
@@ -24,12 +24,13 @@ const vonage = new Vonage(
 );
 
 const virtualNumber = process.env.VONAGE_VIRTUAL_NUMBER;
+const whatsappNumber = process.env.VONAGE_WHATSAPP_NUMBER;
+const rcsSenderId = process.env.RCS_SENDER_ID;
 
 async function formatPhoneNumber(phoneNumber: string) {
   // Format the phone number as needed
   let phoneNumberFormatted;
   const result = await vonage.numberInsights.basicLookup(phoneNumber);
-  // return JSON.stringify(result);
   if (result && result.status === 0) {
     phoneNumberFormatted = result.international_format_number;
   }
@@ -119,7 +120,301 @@ server.registerTool(
         content: [
           {
             type: 'text',
-            text: `Error sending SMS JSON: ${error}`,
+            text: `Error sending SMS: ${
+              typeof error === 'object' && error && 'message' in error
+                ? (error as any).message
+                : String(error)
+            }`,
+          },
+        ],
+      };
+    }
+  }
+);
+
+server.registerTool(
+  'whatsapp-send-text',
+  {
+    title: 'WhatsApp Text Message',
+    description: 'Send a text message via WhatsApp using Vonage Messages API',
+    inputSchema: {
+      to: z
+        .string()
+        .describe(
+          'Recipient WhatsApp number in E.164 format (e.g., +14155552671)'
+        ),
+      message: z.string().describe('Text message to send'),
+    },
+  },
+  async ({ to, message }) => {
+    try {
+      const phoneNumberFormatted = await formatPhoneNumber(to);
+      if (!phoneNumberFormatted) {
+        throw new Error(`Invalid phone number format: ${to}`);
+      }
+
+      if (!message || !phoneNumberFormatted || !whatsappNumber) {
+        throw new Error(
+          'Required parameters missing. Ensure VONAGE_WHATSAPP_NUMBER is set.'
+        );
+      }
+
+      const { messageUUID } = await vonage.messages.send(
+        new WhatsAppText({
+          to: phoneNumberFormatted,
+          from: whatsappNumber,
+          text: message,
+        })
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `WhatsApp message sent to ${to}: "${message}"\nMessage UUID: ${messageUUID}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error sending WhatsApp message: ${
+              typeof error === 'object' && error && 'message' in error
+                ? (error as any).message
+                : String(error)
+            }`,
+          },
+        ],
+      };
+    }
+  }
+);
+
+server.registerTool(
+  'whatsapp-send-text-with-sms-failover',
+  {
+    title: 'WhatsApp Text Message with SMS Failover',
+    description:
+      'Send a WhatsApp text message with automatic SMS failover using the Vonage Messages API failover feature',
+    inputSchema: {
+      to: z
+        .string()
+        .describe(
+          'Recipient phone number in E.164 format (e.g., +14155552671)'
+        ),
+      message: z.string().describe('Text message to send'),
+    },
+  },
+  async ({ to, message }) => {
+    try {
+      const phoneNumberFormatted = await formatPhoneNumber(to);
+      if (!phoneNumberFormatted) {
+        throw new Error(`Invalid phone number format: ${to}`);
+      }
+
+      if (
+        !message ||
+        !phoneNumberFormatted ||
+        !whatsappNumber ||
+        !virtualNumber
+      ) {
+        throw new Error(
+          'Required parameters missing. Ensure VONAGE_WHATSAPP_NUMBER and VONAGE_VIRTUAL_NUMBER are set.'
+        );
+      }
+
+      const result = await vonage.messages.send({
+        messageType: MessageTypes.TEXT,
+        channel: Channels.WHATSAPP,
+        text: message,
+        to: phoneNumberFormatted,
+        from: whatsappNumber,
+        failover: [
+          {
+            messageType: MessageTypes.TEXT,
+            channel: Channels.SMS,
+            text: message,
+            to: phoneNumberFormatted,
+            from: virtualNumber,
+          },
+        ],
+      } as any);
+
+      const messageUUID =
+        (result as any).messageUUID ||
+        (result as any).message_uuid ||
+        'unknown';
+      const workflowId =
+        (result as any).workflowId || (result as any).workflow_id || 'unknown';
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `WhatsApp message with SMS failover sent to ${to}: "${message}"
+Message UUID: ${messageUUID}
+Workflow ID: ${workflowId}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error sending WhatsApp message with failover: ${
+              typeof error === 'object' && error && 'message' in error
+                ? (error as any).message
+                : String(error)
+            }`,
+          },
+        ],
+      };
+    }
+  }
+);
+
+// Send an RCS Text Message
+server.registerTool(
+  'rcs-send-text',
+  {
+    title: 'RCS Text Message',
+    description: 'Send a text message via RCS using Vonage Messages API',
+    inputSchema: {
+      to: z
+        .string()
+        .describe(
+          'Recipient phone number in E.164 format (e.g., +14155552671)'
+        ),
+      message: z.string().describe('Text message to send'),
+    },
+  },
+  async ({ to, message }) => {
+    try {
+      const phoneNumberFormatted = await formatPhoneNumber(to);
+      if (!phoneNumberFormatted) {
+        throw new Error(`Invalid phone number format: ${to}`);
+      }
+
+      if (!message || !phoneNumberFormatted || !rcsSenderId) {
+        throw new Error(
+          'Required parameters missing. Ensure RCS_SENDER_ID is set.'
+        );
+      }
+
+      const result = await vonage.messages.send({
+        messageType: MessageTypes.TEXT,
+        channel: Channels.RCS,
+        text: message,
+        to: phoneNumberFormatted,
+        from: rcsSenderId,
+      } as any);
+
+      const messageUUID =
+        (result as any).messageUUID ||
+        (result as any).message_uuid ||
+        'unknown';
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `RCS message sent to ${to}: "${message}"\nMessage UUID: ${messageUUID}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error sending RCS message: ${
+              typeof error === 'object' && error && 'message' in error
+                ? (error as any).message
+                : String(error)
+            }`,
+          },
+        ],
+      };
+    }
+  }
+);
+
+// Send an RCS Text Message with SMS Failover
+server.registerTool(
+  'rcs-send-text-with-sms-failover',
+  {
+    title: 'RCS Text Message with SMS Failover',
+    description:
+      'Send an RCS text message with automatic SMS failover using the Vonage Messages API failover feature',
+    inputSchema: {
+      to: z
+        .string()
+        .describe(
+          'Recipient phone number in E.164 format (e.g., +14155552671)'
+        ),
+      message: z.string().describe('Text message to send'),
+    },
+  },
+  async ({ to, message }) => {
+    try {
+      const phoneNumberFormatted = await formatPhoneNumber(to);
+      if (!phoneNumberFormatted) {
+        throw new Error(`Invalid phone number format: ${to}`);
+      }
+
+      if (!message || !phoneNumberFormatted || !rcsSenderId || !virtualNumber) {
+        throw new Error(
+          'Required parameters missing. Ensure RCS_SENDER_ID and VONAGE_VIRTUAL_NUMBER are set.'
+        );
+      }
+
+      const result = await vonage.messages.send({
+        messageType: MessageTypes.TEXT,
+        channel: Channels.RCS,
+        text: message,
+        to: phoneNumberFormatted,
+        from: rcsSenderId,
+        failover: [
+          {
+            messageType: MessageTypes.TEXT,
+            channel: Channels.SMS,
+            text: message,
+            to: phoneNumberFormatted,
+            from: virtualNumber,
+          },
+        ],
+      } as any);
+
+      const messageUUID =
+        (result as any).messageUUID ||
+        (result as any).message_uuid ||
+        'unknown';
+      const workflowId =
+        (result as any).workflowId || (result as any).workflow_id || 'unknown';
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `RCS message with SMS failover sent to ${to}: "${message}"
+Message UUID: ${messageUUID}
+Workflow ID: ${workflowId}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error sending RCS message with failover: ${
+              typeof error === 'object' && error && 'message' in error
+                ? (error as any).message
+                : String(error)
+            }`,
           },
         ],
       };
@@ -167,7 +462,7 @@ server.registerTool(
         content: [
           {
             type: 'text',
-            text: `Voice Message "${message}" sent to ${to}: ${JSON.stringify(result)}`,
+            text: `Voice message "${message}" sent to ${to}. Call initiated successfully.`,
           },
         ],
       };
@@ -177,7 +472,11 @@ server.registerTool(
         content: [
           {
             type: 'text',
-            text: `Error sending SMS JSON?: ${error}`,
+            text: `Error sending voice message: ${
+              typeof error === 'object' && error && 'message' in error
+                ? (error as any).message
+                : String(error)
+            }`,
           },
         ],
       };

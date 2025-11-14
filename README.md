@@ -4,14 +4,18 @@
 
 This MCP server provides access to various Vonage API functionalities through the following tools:
 
-| Category                      | Tool Name                           | Description                                                                               |
-| ----------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------- |
-| **Account Management**        | `balance`                           | Get your Vonage account balance                                                           |
-|                               | `list-applications`                 | List all applications attached to your API key with their configurations and capabilities |
-|                               | `list-purchased-numbers`            | List telephone numbers associated with your account and their metadata                    |
-| **Number Management**         | `link-number-to-vonage-application` | Link an owned number to a specific Vonage Application                                     |
-| **Messaging & Communication** | `SMS`                               | Send SMS messages using Vonage                                                            |
-|                               | `outbound-voice-message`            | Send outbound voice messages with Vonage                                                  |
+| Category                      | Tool Name                              | Description                                                                               |
+| ----------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **Account Management**        | `balance`                              | Get your Vonage account balance                                                           |
+|                               | `list-applications`                    | List all applications attached to your API key with their configurations and capabilities |
+|                               | `list-purchased-numbers`               | List telephone numbers associated with your account and their metadata                    |
+| **Number Management**         | `link-number-to-vonage-application`    | Link an owned number to a specific Vonage Application                                     |
+| **Messaging & Communication** | `SMS`                                  | Send SMS messages using Vonage                                                            |
+|                               | `whatsapp-send-text`                   | Send text messages via WhatsApp                                                           |
+|                               | `whatsapp-send-text-with-sms-failover` | Send a WhatsApp text message with automatic SMS failover                                  |
+|                               | `rcs-send-text`                        | Send text messages via RCS                                                                |
+|                               | `rcs-send-text-with-sms-failover`      | Send an RCS text message with automatic SMS failover                                      |
+|                               | `outbound-voice-message`               | Send outbound voice messages with Vonage                                                  |
 
 ### Usage Examples
 
@@ -39,6 +43,30 @@ Can you list out the applications on my account?
 Can you send an SMS to +1234567890 with the message "Hello from Vonage!"?
 ```
 
+#### Send a WhatsApp Message
+
+```
+Can you send a WhatsApp message to +1234567890 with the message "Hello from Vonage over WhatsApp!"?
+```
+
+#### Send a WhatsApp Message with SMS Failover
+
+```
+Can you send a WhatsApp message with SMS failover to +1234567890 saying "Hello from Vonage with failover!"?
+```
+
+#### Send an RCS Message
+
+```
+Can you send an RCS message to +1234567890 with the message "Hello from Vonage via RCS!"?
+```
+
+#### Send an RCS Message with SMS Failover
+
+```
+Can you send an RCS message with SMS failover to +1234567890 saying "Hello from Vonage RCS with fallback!"?
+```
+
 ## Set up the MCP server
 
 - [VS Code](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)
@@ -61,7 +89,9 @@ The details of the MCP server should look like this.
         "VONAGE_PRIVATE_KEY64": "<YOUR_VONAGE_PRIVATE_KEY64>",
         "VONAGE_API_KEY": "<YOUR_VONAGE_API_KEY>",
         "VONAGE_API_SECRET": "<YOUR_VONAGE_API_SECRET>",
-        "VONAGE_VIRTUAL_NUMBER": "<YOUR_VONAGE_VIRTUAL_NUMBER>"
+        "VONAGE_VIRTUAL_NUMBER": "<YOUR_VONAGE_VIRTUAL_NUMBER>",
+        "VONAGE_WHATSAPP_NUMBER": "<YOUR_VONAGE_WHATSAPP_NUMBER>",
+        "RCS_SENDER_ID": "<YOUR_RCS_SENDER_ID>"
     }
 }
 ```
