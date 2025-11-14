@@ -5,7 +5,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { Vonage } from '@vonage/server-sdk';
 import { Auth } from '@vonage/auth';
-import { Channels, MessageTypes, WhatsAppText } from '@vonage/messages';
+import { Channels, MessageTypes } from '@vonage/messages';
 import { NCCOBuilder, Talk } from '@vonage/voice';
 
 const appId = process.env.VONAGE_APPLICATION_ID || '';
@@ -35,6 +35,109 @@ async function formatPhoneNumber(phoneNumber: string) {
     phoneNumberFormatted = result.international_format_number;
   }
   return phoneNumberFormatted;
+}
+
+// Channel configurations for modular messaging
+const CHANNEL_CONFIGS = {
+  whatsapp: {
+    channel: Channels.WHATSAPP,
+    getFrom: () => whatsappNumber,
+    requiresValidation: () => !!whatsappNumber,
+    validationError: 'VONAGE_WHATSAPP_NUMBER is not set.',
+  },
+  rcs: {
+    channel: Channels.RCS,
+    getFrom: () => rcsSenderId,
+    requiresValidation: () => !!rcsSenderId,
+    validationError: 'RCS_SENDER_ID is not set.',
+  },
+  sms: {
+    channel: Channels.SMS,
+    getFrom: () => virtualNumber,
+    requiresValidation: () => !!virtualNumber,
+    validationError: 'VONAGE_VIRTUAL_NUMBER is not set.',
+  },
+} as const;
+
+// Unified messaging function for all channels
+async function sendChannelMessage(
+  channelKey: keyof typeof CHANNEL_CONFIGS,
+  to: string,
+  message: string,
+  useFailover: boolean = false
+) {
+  const config = CHANNEL_CONFIGS[channelKey];
+
+  // Validate channel requirements
+  if (!config.requiresValidation()) {
+    throw new Error(config.validationError);
+  }
+
+  // Format phone number
+  const phoneNumberFormatted = await formatPhoneNumber(to);
+  if (!phoneNumberFormatted) {
+    throw new Error(`Invalid phone number format: ${to}`);
+  }
+
+  if (!message) {
+    throw new Error('Message is required');
+  }
+
+  // Build failover configuration if requested
+  const failover = useFailover
+    ? [
+        {
+          messageType: MessageTypes.TEXT,
+          channel: Channels.SMS,
+          text: message,
+          to: phoneNumberFormatted,
+          from: virtualNumber,
+        },
+      ]
+    : undefined;
+
+  if (useFailover && !virtualNumber) {
+    throw new Error('VONAGE_VIRTUAL_NUMBER required for failover');
+  }
+
+  // Send message using direct API
+  const result = await vonage.messages.send({
+    messageType: MessageTypes.TEXT,
+    channel: config.channel,
+    text: message,
+    to: phoneNumberFormatted,
+    from: config.getFrom(),
+    ...(failover && { failover }),
+  } as any);
+
+  // Extract response data
+  const messageUUID =
+    (result as any).messageUUID || (result as any).message_uuid || 'unknown';
+  const workflowId =
+    (result as any).workflowId || (result as any).workflow_id || 'unknown';
+
+  return { messageUUID, workflowId };
+}
+
+// Simple channel-specific wrapper functions
+async function sendWhatsAppText(
+  to: string,
+  message: string,
+  useFailover: boolean = false
+) {
+  return await sendChannelMessage('whatsapp', to, message, useFailover);
+}
+
+async function sendRCSText(
+  to: string,
+  message: string,
+  useFailover: boolean = false
+) {
+  return await sendChannelMessage('rcs', to, message, useFailover);
+}
+
+async function sendSMSText(to: string, message: string) {
+  return await sendChannelMessage('sms', to, message, false);
 }
 
 // Create an MCP server
@@ -89,21 +192,7 @@ server.registerTool(
   },
   async ({ to, message }) => {
     try {
-      // "await" the result of the send call
-      const phoneNumberFormatted = await formatPhoneNumber(to);
-      if (!phoneNumberFormatted) {
-        throw new Error(`Invalid phone number format: ${to}`);
-      }
-      if (!message || !phoneNumberFormatted || !virtualNumber) {
-        throw new Error('Required parameters missing');
-      }
-      const { messageUUID } = await vonage.messages.send({
-        messageType: MessageTypes.TEXT,
-        channel: Channels.SMS,
-        text: message,
-        to: phoneNumberFormatted,
-        from: virtualNumber,
-      });
+      const { messageUUID } = await sendSMSText(to, message);
 
       // On success, return the content object
       return {
@@ -148,24 +237,7 @@ server.registerTool(
   },
   async ({ to, message }) => {
     try {
-      const phoneNumberFormatted = await formatPhoneNumber(to);
-      if (!phoneNumberFormatted) {
-        throw new Error(`Invalid phone number format: ${to}`);
-      }
-
-      if (!message || !phoneNumberFormatted || !whatsappNumber) {
-        throw new Error(
-          'Required parameters missing. Ensure VONAGE_WHATSAPP_NUMBER is set.'
-        );
-      }
-
-      const { messageUUID } = await vonage.messages.send(
-        new WhatsAppText({
-          to: phoneNumberFormatted,
-          from: whatsappNumber,
-          text: message,
-        })
-      );
+      const { messageUUID } = await sendWhatsAppText(to, message, false);
 
       return {
         content: [
@@ -209,45 +281,11 @@ server.registerTool(
   },
   async ({ to, message }) => {
     try {
-      const phoneNumberFormatted = await formatPhoneNumber(to);
-      if (!phoneNumberFormatted) {
-        throw new Error(`Invalid phone number format: ${to}`);
-      }
-
-      if (
-        !message ||
-        !phoneNumberFormatted ||
-        !whatsappNumber ||
-        !virtualNumber
-      ) {
-        throw new Error(
-          'Required parameters missing. Ensure VONAGE_WHATSAPP_NUMBER and VONAGE_VIRTUAL_NUMBER are set.'
-        );
-      }
-
-      const result = await vonage.messages.send({
-        messageType: MessageTypes.TEXT,
-        channel: Channels.WHATSAPP,
-        text: message,
-        to: phoneNumberFormatted,
-        from: whatsappNumber,
-        failover: [
-          {
-            messageType: MessageTypes.TEXT,
-            channel: Channels.SMS,
-            text: message,
-            to: phoneNumberFormatted,
-            from: virtualNumber,
-          },
-        ],
-      } as any);
-
-      const messageUUID =
-        (result as any).messageUUID ||
-        (result as any).message_uuid ||
-        'unknown';
-      const workflowId =
-        (result as any).workflowId || (result as any).workflow_id || 'unknown';
+      const { messageUUID, workflowId } = await sendWhatsAppText(
+        to,
+        message,
+        true
+      );
 
       return {
         content: [
@@ -276,7 +314,6 @@ Workflow ID: ${workflowId}`,
   }
 );
 
-// Send an RCS Text Message
 server.registerTool(
   'rcs-send-text',
   {
@@ -293,29 +330,7 @@ server.registerTool(
   },
   async ({ to, message }) => {
     try {
-      const phoneNumberFormatted = await formatPhoneNumber(to);
-      if (!phoneNumberFormatted) {
-        throw new Error(`Invalid phone number format: ${to}`);
-      }
-
-      if (!message || !phoneNumberFormatted || !rcsSenderId) {
-        throw new Error(
-          'Required parameters missing. Ensure RCS_SENDER_ID is set.'
-        );
-      }
-
-      const result = await vonage.messages.send({
-        messageType: MessageTypes.TEXT,
-        channel: Channels.RCS,
-        text: message,
-        to: phoneNumberFormatted,
-        from: rcsSenderId,
-      } as any);
-
-      const messageUUID =
-        (result as any).messageUUID ||
-        (result as any).message_uuid ||
-        'unknown';
+      const { messageUUID } = await sendRCSText(to, message, false);
 
       return {
         content: [
@@ -342,7 +357,6 @@ server.registerTool(
   }
 );
 
-// Send an RCS Text Message with SMS Failover
 server.registerTool(
   'rcs-send-text-with-sms-failover',
   {
@@ -360,40 +374,7 @@ server.registerTool(
   },
   async ({ to, message }) => {
     try {
-      const phoneNumberFormatted = await formatPhoneNumber(to);
-      if (!phoneNumberFormatted) {
-        throw new Error(`Invalid phone number format: ${to}`);
-      }
-
-      if (!message || !phoneNumberFormatted || !rcsSenderId || !virtualNumber) {
-        throw new Error(
-          'Required parameters missing. Ensure RCS_SENDER_ID and VONAGE_VIRTUAL_NUMBER are set.'
-        );
-      }
-
-      const result = await vonage.messages.send({
-        messageType: MessageTypes.TEXT,
-        channel: Channels.RCS,
-        text: message,
-        to: phoneNumberFormatted,
-        from: rcsSenderId,
-        failover: [
-          {
-            messageType: MessageTypes.TEXT,
-            channel: Channels.SMS,
-            text: message,
-            to: phoneNumberFormatted,
-            from: virtualNumber,
-          },
-        ],
-      } as any);
-
-      const messageUUID =
-        (result as any).messageUUID ||
-        (result as any).message_uuid ||
-        'unknown';
-      const workflowId =
-        (result as any).workflowId || (result as any).workflow_id || 'unknown';
+      const { messageUUID, workflowId } = await sendRCSText(to, message, true);
 
       return {
         content: [
