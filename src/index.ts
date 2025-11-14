@@ -462,7 +462,7 @@ server.registerTool(
         content: [
           {
             type: 'text',
-            text: `Voice message "${message}" sent to ${to}. Call initiated successfully.`,
+            text: `Voice Message "${message}" sent to ${to}: ${JSON.stringify(result)}`,
           },
         ],
       };
