@@ -183,14 +183,15 @@ server.registerTool(
 );
 
 // Send an SMS
-server.registerTool(
+(server.registerTool as any)(
   'SMS',
   {
     title: 'SMS message',
     description: 'Send SMS messages with Vonage',
     inputSchema: { to: z.string(), message: z.string() },
   },
-  async ({ to, message }) => {
+  async (args: any) => {
+    const { to, message } = args as { to: string; message: string };
     try {
       const { messageUUID } = await sendSMSText(to, message);
 
@@ -217,7 +218,7 @@ server.registerTool(
   }
 );
 
-server.registerTool(
+(server.registerTool as any)(
   'whatsapp-send-text',
   {
     title: 'WhatsApp Text Message',
@@ -231,9 +232,10 @@ server.registerTool(
       message: z.string().describe('Text message to send'),
     },
   },
-  async ({ to, message }) => {
+  async (args: any) => {
+    const { to, message } = args as { to: string; message: string };
     try {
-      const { messageUUID } = await sendWhatsAppText(to, message, false);
+      const { messageUUID } = await sendWhatsAppText(to, message, true);
 
       return {
         content: [
@@ -256,7 +258,7 @@ server.registerTool(
   }
 );
 
-server.registerTool(
+(server.registerTool as any)(
   'whatsapp-send-text-with-sms-failover',
   {
     title: 'WhatsApp Text Message with SMS Failover',
@@ -271,7 +273,8 @@ server.registerTool(
       message: z.string().describe('Text message to send'),
     },
   },
-  async ({ to, message }) => {
+  async (args: any) => {
+    const { to, message } = args as { to: string; message: string };
     try {
       const { messageUUID, workflowId } = await sendWhatsAppText(
         to,
@@ -302,7 +305,7 @@ Workflow ID: ${workflowId}`,
   }
 );
 
-server.registerTool(
+(server.registerTool as any)(
   'rcs-send-text',
   {
     title: 'RCS Text Message',
@@ -316,9 +319,9 @@ server.registerTool(
       message: z.string().describe('Text message to send'),
     },
   },
-  async ({ to, message }) => {
+  async ({ to, message }: { to: string; message: string }) => {
     try {
-      const { messageUUID } = await sendRCSText(to, message, false);
+      const { messageUUID } = await sendRCSText(to, message);
 
       return {
         content: [
@@ -341,7 +344,7 @@ server.registerTool(
   }
 );
 
-server.registerTool(
+(server.registerTool as any)(
   'rcs-send-text-with-sms-failover',
   {
     title: 'RCS Text Message with SMS Failover',
@@ -356,7 +359,8 @@ server.registerTool(
       message: z.string().describe('Text message to send'),
     },
   },
-  async ({ to, message }) => {
+  async (args: any) => {
+    const { to, message } = args as { to: string; message: string };
     try {
       const { messageUUID, workflowId } = await sendRCSText(to, message, true);
 
@@ -384,14 +388,14 @@ Workflow ID: ${workflowId}`,
 );
 
 // Send an Outbound Voice Message
-server.registerTool(
+(server.registerTool as any)(
   'outbound-voice-message',
   {
     title: 'Outbound Voice Message',
     description: 'Send an outbound voice message with Vonage',
     inputSchema: { to: z.string(), message: z.string() },
   },
-  async ({ to, message }) => {
+  async ({ to, message }: { to: string; message: string }) => {
     const builder = new NCCOBuilder();
     builder.addAction(new Talk(message));
 
@@ -486,7 +490,7 @@ server.registerTool(
   }
 );
 
-server.registerTool(
+(server.registerTool as any)(
   'link-number-to-vonage-application',
   {
     title: 'Link an owned number to the assigned Vonage Application',
@@ -502,7 +506,13 @@ server.registerTool(
         .describe('The Vonage Application ID to link the number to'),
     },
   },
-  async ({ msisdn, applicationId }) => {
+  async ({
+    msisdn,
+    applicationId,
+  }: {
+    msisdn: string;
+    applicationId: string;
+  }) => {
     try {
       applicationId = applicationId.replace(/\s+/g, '');
       const numbers = await vonage.numbers.getOwnedNumbers({
