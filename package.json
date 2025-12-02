@@ -29,8 +29,8 @@
   "description": "MCP server to interact with Vonage APIs",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.1",
-    "@vonage/messages": "^1.20.1",
-    "@vonage/server-sdk": "^3.22.1",
+    "@vonage/messages": "^1.20.3",
+    "@vonage/server-sdk": "^3.25.1",
     "@vonage/voice": "^1.18.0",
     "dotenv": "^17.2.0",
     "zod": "^3.25.76"
