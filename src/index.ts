@@ -467,6 +467,57 @@ server.registerTool(
   }
 );
 
+(server.registerTool as any)(
+  'create-application',
+  {
+    title: 'Create a new Vonage Application',
+    description: 'Create a new Vonage application with a specified name',
+    inputSchema: {
+      name: z
+        .string()
+        .optional()
+        .describe(
+          'The name of the application to create. If not provided, a default name will be generated.'
+        ),
+    },
+  },
+  async (args: any) => {
+    const { name } = args as { name?: string };
+    try {
+      const applicationName =
+        name || `Vonage App ${new Date().toISOString().split('T')[0]}`;
+
+      const application = await vonage.applications.createApplication({
+        name: applicationName,
+        capabilities: {},
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Application created successfully:
+Name: ${application.name}
+Application ID: ${application.id}
+${application.keys?.private_key ? `Private Key: ${application.keys.private_key}` : ''}
+
+Full details: ${JSON.stringify(application, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error creating application: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`,
+          },
+        ],
+      };
+    }
+  }
+);
+
 server.registerTool(
   'list-purchased-numbers',
   {
