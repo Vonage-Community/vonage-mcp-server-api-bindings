@@ -8,6 +8,7 @@ This MCP server provides access to various Vonage API functionalities through th
 | ----------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------- |
 | **Account Management**        | `balance`                              | Get your Vonage account balance                                                           |
 |                               | `list-applications`                    | List all applications attached to your API key with their configurations and capabilities |
+|                               | `create-application`                   | Create a new Vonage application with a specified name                                     |
 |                               | `list-purchased-numbers`               | List telephone numbers associated with your account and their metadata                    |
 | **Number Management**         | `link-number-to-vonage-application`    | Link an owned number to a specific Vonage Application                                     |
 | **Messaging & Communication** | `SMS`                                  | Send SMS messages using Vonage                                                            |
@@ -35,6 +36,18 @@ Can you list out the numbers that I own for Vonage?
 
 ```
 Can you list out the applications on my account?
+```
+
+#### Create a New Application
+
+```
+Can you create a new Vonage application called "My Chat App"?
+```
+
+Or let the system suggest a name:
+
+```
+Can you create a new Vonage application?
 ```
 
 #### Send an SMS
