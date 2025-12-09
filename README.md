@@ -98,5 +98,5 @@ The details of the MCP server should look like this.
 
 > Right now, we only use a base64 encoded Private Key. I created a tool that will convert the
 > private key file into the encoded string that you can copy and paste. Everything is done in your
-> browser, no inforamtion is sent anywhere:
+> browser, no information is sent anywhere:
 > [https://mylight.work/private-key-to-environment-variable](https://mylight.work/private-key-to-environment-variable)
