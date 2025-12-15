@@ -3,6 +3,7 @@
   "version": "1.2.0",
   "main": "build/index.js",
   "bin": "build/index.js",
+  "mcpName": "io.github.Vonage-Community/vonage-mcp-server-api-bindings",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc && chmod +x build/index.js",
