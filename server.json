@@ -1,0 +1,78 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.Vonage-Community/vonage-mcp-server-api-bindings",
+  "description": "MCP server to interact with Vonage APIs",
+  "repository": {
+    "url": "https://github.com/Vonage-Community/vonage-mcp-server-api-bindings",
+    "source": "github"
+  },
+  "version": "1.2.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@vonage/vonage-mcp-server-api-bindings",
+      "version": "1.2.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "Your Vonage Application ID",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "VONAGE_APPLICATION_ID"
+        },
+        {
+          "description": "Your Vonage Private Key (base64 encoded)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true,
+          "name": "VONAGE_PRIVATE_KEY64"
+        },
+        {
+          "description": "Your Vonage API Key",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "VONAGE_API_KEY"
+        },
+        {
+          "description": "Your Vonage API Secret",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true,
+          "name": "VONAGE_API_SECRET"
+        },
+        {
+          "description": "Your Vonage Virtual Number",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "VONAGE_VIRTUAL_NUMBER"
+        },
+        {
+          "description": "Your Vonage WhatsApp Number",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "VONAGE_WHATSAPP_NUMBER"
+        },
+        {
+          "description": "Your RCS Sender ID",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "RCS_SENDER_ID"
+        },
+        {
+          "description": "Your API key for the service",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": true,
+          "name": "YOUR_API_KEY"
+        }
+      ]
+    }
+  ]
+}
