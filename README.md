@@ -17,6 +17,9 @@ This MCP server provides access to various Vonage API functionalities through th
 |                               | `rcs-send-text`                        | Send text messages via RCS                                                                |
 |                               | `rcs-send-text-with-sms-failover`      | Send an RCS text message with automatic SMS failover                                      |
 |                               | `outbound-voice-message`               | Send outbound voice messages with Vonage                                                  |
+| **Verification**              | `start-verification`                   | Start a phone verification by sending a code via SMS or voice                             |
+|                               | `check-verification`                   | Verify the code entered by the user                                                       |
+|                               | `cancel-verification`                  | Cancel a pending verification request                                                     |
 
 ### Usage Examples
 
@@ -78,6 +81,30 @@ Can you send an RCS message to +1234567890 with the message "Hello from Vonage v
 
 ```
 Can you send an RCS message with SMS failover to +1234567890 saying "Hello from Vonage RCS with fallback!"?
+```
+
+#### Start a Phone Verification
+
+```
+Can you start a phone verification for +1234567890 with brand "MyApp"?
+```
+
+Or with voice call instead of SMS:
+
+```
+Can you start a voice verification for +1234567890 with brand "MyApp"?
+```
+
+#### Check a Verification Code
+
+```
+Can you check if the code 123456 is correct for verification request abc123-def456?
+```
+
+#### Cancel a Verification Request
+
+```
+Can you cancel the verification request abc123-def456?
 ```
 
 ## Set up the MCP server
