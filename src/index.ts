@@ -641,6 +641,196 @@ server.registerTool(
   }
 );
 
+// Verify API Tools
+
+(server.registerTool as any)(
+  'start-verification',
+  {
+    title: 'Start Phone Verification',
+    description:
+      'Start a phone verification process by sending a code via SMS or voice call',
+    inputSchema: {
+      to: z
+        .string()
+        .describe(
+          'Recipient phone number in E.164 format (e.g., +14155552671)'
+        ),
+      brand: z
+        .string()
+        .describe(
+          'The brand name to display in the verification message (e.g., "MyApp")'
+        ),
+      channel: z
+        .enum(['sms', 'voice'])
+        .optional()
+        .describe(
+          'Channel to send verification code: "sms" or "voice". Defaults to "sms"'
+        ),
+      codeLength: z
+        .number()
+        .min(4)
+        .max(10)
+        .optional()
+        .describe(
+          'Length of the verification code (4-10 digits). Defaults to 4'
+        ),
+    },
+  },
+  async ({
+    to,
+    brand,
+    channel = 'sms',
+    codeLength,
+  }: {
+    to: string;
+    brand: string;
+    channel?: 'sms' | 'voice';
+    codeLength?: number;
+  }) => {
+    try {
+      const phoneNumberFormatted = await formatPhoneNumber(to);
+      if (!phoneNumberFormatted) {
+        throw new Error(`Invalid phone number format: ${to}`);
+      }
+
+      const workflow =
+        channel === 'voice'
+          ? [{ channel: 'voice' as const, to: phoneNumberFormatted }]
+          : [{ channel: 'sms' as const, to: phoneNumberFormatted }];
+
+      const response = await vonage.verify2.newRequest({
+        brand,
+        workflow: workflow as any,
+        ...(codeLength && {
+          codeLength: codeLength as 4 | 5 | 6 | 7 | 8 | 9 | 10,
+        }),
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Verification started successfully!
+Request ID: ${response.requestId}
+Channel: ${channel}
+Phone: ${phoneNumberFormatted}
+
+Save the Request ID - you'll need it to check the verification code.`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error starting verification: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`,
+          },
+        ],
+      };
+    }
+  }
+);
+
+(server.registerTool as any)(
+  'check-verification',
+  {
+    title: 'Check Verification Code',
+    description:
+      'Verify the code entered by the user against a verification request',
+    inputSchema: {
+      requestId: z
+        .string()
+        .describe('The request ID returned from start-verification'),
+      code: z.string().describe('The verification code entered by the user'),
+    },
+  },
+  async ({ requestId, code }: { requestId: string; code: string }) => {
+    try {
+      if (!requestId) {
+        throw new Error('Request ID is required');
+      }
+      if (!code) {
+        throw new Error('Verification code is required');
+      }
+
+      const status = await vonage.verify2.checkCode(requestId, code);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Verification successful!
+Status: ${status}
+Request ID: ${requestId}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error checking verification code: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`,
+          },
+        ],
+      };
+    }
+  }
+);
+
+(server.registerTool as any)(
+  'cancel-verification',
+  {
+    title: 'Cancel Verification Request',
+    description: 'Cancel a pending verification request',
+    inputSchema: {
+      requestId: z
+        .string()
+        .describe('The request ID of the verification to cancel'),
+    },
+  },
+  async ({ requestId }: { requestId: string }) => {
+    try {
+      if (!requestId) {
+        throw new Error('Request ID is required');
+      }
+
+      const success = await vonage.verify2.cancel(requestId);
+
+      if (success) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Verification request canceled successfully.
+Request ID: ${requestId}`,
+            },
+          ],
+        };
+      } else {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Failed to cancel verification request: ${requestId}`,
+            },
+          ],
+        };
+      }
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error canceling verification: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`,
+          },
+        ],
+      };
+    }
+  }
+);
+
 // Start receiving messages on stdin and sending messages on stdout
 async function main() {
   const transport = new StdioServerTransport();
