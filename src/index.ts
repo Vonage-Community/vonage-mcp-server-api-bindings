@@ -235,7 +235,7 @@ server.registerTool(
   async (args: any) => {
     const { to, message } = args as { to: string; message: string };
     try {
-      const { messageUUID } = await sendWhatsAppText(to, message, true);
+      const { messageUUID } = await sendWhatsAppText(to, message, false);
 
       return {
         content: [
