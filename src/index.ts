@@ -453,17 +453,28 @@ server.registerTool(
     inputSchema: {},
   },
   async () => {
-    const apps = await vonage.applications.listApplications({});
+    try {
+      const apps = await vonage.applications.listApplications({});
 
-    // On success, return the content object
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Applications: ${JSON.stringify(apps)}`,
-        },
-      ],
-    };
+      // On success, return the content object
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Applications: ${JSON.stringify(apps)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error listing applications: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`,
+          },
+        ],
+      };
+    }
   }
 );
 
@@ -527,17 +538,28 @@ server.registerTool(
     inputSchema: {},
   },
   async () => {
-    const numbers = await vonage.numbers.getOwnedNumbers();
+    try {
+      const numbers = await vonage.numbers.getOwnedNumbers();
 
-    // On success, return the content object
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Numbers: ${JSON.stringify(numbers)}`,
-        },
-      ],
-    };
+      // On success, return the content object
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Numbers: ${JSON.stringify(numbers)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error listing purchased numbers: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`,
+          },
+        ],
+      };
+    }
   }
 );
 
