@@ -10,7 +10,9 @@ This MCP server provides access to various Vonage API functionalities through th
 |                               | `list-applications`                    | List all applications attached to your API key with their configurations and capabilities |
 |                               | `create-application`                   | Create a new Vonage application with a specified name                                     |
 |                               | `list-purchased-numbers`               | List telephone numbers associated with your account and their metadata                    |
-| **Number Management**         | `link-number-to-vonage-application`    | Link an owned number to a specific Vonage Application                                     |
+| **Number Management**         | `search-available-numbers`             | Search for available phone numbers to purchase from Vonage in a specific country          |
+|                               | `link-number-to-vonage-application`    | Link an owned number to a specific Vonage Application                                     |
+| **Reports**                   | `get-records-report`                   | Retrieve activity records from the Vonage Reports API (date-based or ID-based queries)    |
 | **Messaging & Communication** | `SMS`                                  | Send SMS messages using Vonage                                                            |
 |                               | `whatsapp-send-text`                   | Send text messages via WhatsApp                                                           |
 |                               | `whatsapp-send-text-with-sms-failover` | Send a WhatsApp text message with automatic SMS failover                                  |
@@ -32,6 +34,22 @@ Can you check my Vonage account balance?
 Can you list out the numbers that I own for Vonage?
 ```
 
+#### Search for Available Numbers to Purchase
+
+```
+Can you search for available Vonage numbers to purchase in the US?
+```
+
+Or search with specific criteria:
+
+```
+Can you search for available Vonage numbers in the US with SMS and VOICE features?
+```
+
+```
+Can you search for available numbers in GB starting with pattern "44207*"?
+```
+
 #### List Applications
 
 ```
@@ -48,6 +66,20 @@ Or let the system suggest a name:
 
 ```
 Can you create a new Vonage application?
+```
+
+#### Get a Records Report
+
+Query by date range:
+
+```
+Can you get a report of all outbound SMS sent over the last week?
+```
+
+Query by specific ID:
+
+```
+Can you get the report for Voice Call ID 1234-abcd-5678-efgh?
 ```
 
 #### Send an SMS

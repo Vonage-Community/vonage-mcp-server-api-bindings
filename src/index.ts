@@ -542,6 +542,101 @@ server.registerTool(
 );
 
 (server.registerTool as any)(
+  'search-available-numbers',
+  {
+    title: 'Search for available Vonage numbers to purchase',
+    description: 'Search for available phone numbers that can be purchased from Vonage in a specific country',
+    inputSchema: {
+      country: z
+        .string()
+        .describe('The two-character country code in ISO 3166-1 alpha-2 format, e.g. US, GB, DE'),
+      pattern: z
+        .string()
+        .optional()
+        .describe('The number pattern to search for (optional). Use * to match any character.'),
+      features: z
+        .string()
+        .optional()
+        .describe('Comma-separated list of features (optional). Options: SMS, VOICE, MMS'),
+      size: z
+        .number()
+        .optional()
+        .describe('Maximum number of results to return (optional, default is 10, max is 100)'),
+    },
+  },
+  async (args: any) => {
+    const { country, pattern, features, size } = args as {
+      country: string;
+      pattern?: string;
+      features?: string;
+      size?: number;
+    };
+    
+    try {
+      const searchParams: any = {
+        country: country.toUpperCase(),
+      };
+
+      if (pattern) {
+        searchParams.pattern = pattern;
+      }
+
+      if (features) {
+        searchParams.features = features.split(',').map((f: string) => f.trim().toUpperCase());
+      }
+
+      if (size) {
+        searchParams.size = Math.min(size, 100); // Limit to max 100
+      } else {
+        searchParams.size = 10; // Default to 10
+      }
+
+      const availableNumbers = await vonage.numbers.getAvailableNumbers(searchParams);
+
+      if (!availableNumbers || !availableNumbers.numbers || availableNumbers.numbers.length === 0) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `No available numbers found for country ${country}${pattern ? ` matching pattern "${pattern}"` : ''}`,
+            },
+          ],
+        };
+      }
+
+      // Format the results nicely
+      const numbersList = availableNumbers.numbers.map((num: any, index: number) => {
+        const features = [];
+        if (num.features) {
+          if (num.features.includes('VOICE')) features.push('Voice');
+          if (num.features.includes('SMS')) features.push('SMS');
+          if (num.features.includes('MMS')) features.push('MMS');
+        }
+        return `${index + 1}. ${num.msisdn} (${num.country}) - Features: ${features.join(', ') || 'None'} - Type: ${num.type || 'N/A'} - Cost: ${num.cost || 'N/A'}`;
+      }).join('\n');
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Found ${availableNumbers.numbers.length} available number(s) in ${country}:\n\n${numbersList}\n\nFull details: ${JSON.stringify(availableNumbers, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error searching for available numbers: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`,
+          },
+        ],
+      };
+    }
+  }
+);
+
+(server.registerTool as any)(
   'link-number-to-vonage-application',
   {
     title: 'Link an owned number to the assigned Vonage Application',
@@ -634,6 +729,180 @@ server.registerTool(
           {
             type: 'text',
             text: `Error linking number: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`,
+          },
+        ],
+      };
+    }
+  }
+);
+
+// Get records report (synchronous Reports API)
+(server.registerTool as any)(
+  'get-records-report',
+  {
+    title: 'Get Records Report',
+    description:
+      'Retrieve a report of activity records from the Vonage Reports API. ' +
+      'Supports date-based queries (e.g. "all SMS sent over the last week") and ' +
+      'ID-based queries (e.g. "report for Call ID 1234-abcd"). ' +
+      'For date-based queries provide product, direction (required for SMS/MESSAGES), and optionally date_start/date_end. ' +
+      'For ID-based queries provide product and id (comma-separated UUIDs, max 20).',
+    inputSchema: {
+      product: z
+        .enum([
+          'SMS',
+          'SMS-TRAFFIC-CONTROL',
+          'VOICE-CALL',
+          'VOICE-FAILED',
+          'VOICE-TTS',
+          'IN-APP-VOICE',
+          'WEBSOCKET-CALL',
+          'ASR',
+          'AMD',
+          'VERIFY-API',
+          'VERIFY-V2',
+          'NUMBER-INSIGHT',
+          'NUMBER-INSIGHT-V2',
+          'CONVERSATION-EVENT',
+          'CONVERSATION-MESSAGE',
+          'MESSAGES',
+          'VIDEO-API',
+          'NETWORK-API-EVENT',
+          'REPORTS-USAGE',
+        ])
+        .describe('The product to return records for.'),
+      id: z
+        .string()
+        .optional()
+        .describe(
+          'UUID(s) of the message or call to look up. Comma-separated, max 20. ' +
+            'When provided, only product, account_id, direction, include_message, and show_concatenated are used.'
+        ),
+      date_start: z
+        .string()
+        .optional()
+        .describe(
+          'ISO-8601 start date/time for the report (e.g. 2024-01-01T00:00:00Z). Defaults to 7 days ago.'
+        ),
+      date_end: z
+        .string()
+        .optional()
+        .describe(
+          'ISO-8601 end date/time for the report (e.g. 2024-01-08T00:00:00Z). Defaults to now.'
+        ),
+      direction: z
+        .enum(['inbound', 'outbound'])
+        .optional()
+        .describe('Direction of communication. Required for SMS and MESSAGES.'),
+      status: z.string().optional().describe('Filter by event status.'),
+      from: z.string().optional().describe('Filter by sender ID/number.'),
+      to: z.string().optional().describe('Filter by recipient phone number.'),
+      country: z.string().optional().describe('Filter by country code.'),
+      include_message: z
+        .boolean()
+        .optional()
+        .describe('Include message content in response (SMS, MESSAGES).'),
+      call_id: z
+        .string()
+        .optional()
+        .describe('Filter by call ID (VOICE-CALL, WEBSOCKET-CALL).'),
+      account_id: z
+        .string()
+        .optional()
+        .describe(
+          'Account ID (API key) to report on. Defaults to your API key.'
+        ),
+    },
+  },
+  async (args: any) => {
+    const {
+      product,
+      id,
+      date_start,
+      date_end,
+      direction,
+      status,
+      from,
+      to,
+      country,
+      include_message,
+      call_id,
+      account_id,
+    } = args as {
+      product: string;
+      id?: string;
+      date_start?: string;
+      date_end?: string;
+      direction?: string;
+      status?: string;
+      from?: string;
+      to?: string;
+      country?: string;
+      include_message?: boolean;
+      call_id?: string;
+      account_id?: string;
+    };
+
+    try {
+      const apiKey = process.env.VONAGE_API_KEY!;
+      const apiSecret = process.env.VONAGE_API_SECRET!;
+      const resolvedAccountId = account_id || apiKey;
+
+      const params = new URLSearchParams();
+      params.set('product', product);
+      params.set('account_id', resolvedAccountId);
+
+      if (id) {
+        params.set('id', id);
+      } else {
+        if (date_start) params.set('date_start', date_start);
+        if (date_end) params.set('date_end', date_end);
+        if (status) params.set('status', status);
+        if (from) params.set('from', from);
+        if (to) params.set('to', to);
+        if (country) params.set('country', country);
+        if (call_id) params.set('call_id', call_id);
+      }
+
+      if (direction) params.set('direction', direction);
+      if (include_message !== undefined)
+        params.set('include_message', String(include_message));
+
+      const url = `https://api.nexmo.com/v2/reports/records?${params.toString()}`;
+      const credentials = Buffer.from(`${apiKey}:${apiSecret}`).toString(
+        'base64'
+      );
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Basic ${credentials}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Reports API error ${response.status}: ${errorBody}`);
+      }
+
+      const data = (await response.json()) as any;
+      const recordCount = data.total_count ?? data.items?.length ?? 0;
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Records report for ${product}${id ? ` (ID: ${id})` : ''}:\nTotal records: ${recordCount}\n\n${JSON.stringify(data, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error retrieving records report: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`,
           },
         ],
       };
