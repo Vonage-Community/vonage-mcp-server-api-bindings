@@ -3,6 +3,15 @@ import 'dotenv/config';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+import {
+  registerAppTool,
+  registerAppResource,
+  RESOURCE_MIME_TYPE,
+} from "@modelcontextprotocol/ext-apps/server";
+import fs from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
+
 import { Vonage } from '@vonage/server-sdk';
 import { Auth } from '@vonage/auth';
 import { Channels, MessageTypes } from '@vonage/messages';
@@ -905,6 +914,141 @@ server.registerTool(
             text: `Error retrieving records report: ${typeof error === 'object' && error && 'message' in error ? (error as any).message : String(error)}`,
           },
         ],
+      };
+    }
+  }
+);
+
+
+// Make Chart tool and resource registration
+// Helper to detect if we are running in a known cloud/browser IDE
+const isCloudEnvironment = (): boolean => {
+    return !!(
+        process.env.CODESPACES ||           // GitHub Codespaces
+        process.env.GITPOD_WORKSPACE_ID ||  // Gitpod
+        process.env.REPL_ID ||              // Replit
+        process.env.CODESANDBOX_SSE ||      // CodeSandbox
+        process.env.C9_PID                  // AWS Cloud9
+    );
+};
+
+// The ui:// scheme tells hosts this is an MCP App resource.
+// The path structure is arbitrary; organize it however makes sense for your app.
+const resourceUri = "ui://make-chart/chart-mcp-app.html";
+
+// Register the tool that returns the chart
+registerAppTool(
+  server,
+  "make-chart",
+  {
+    title: "Make Chart",
+    description: "Generates an interactive Chart.js chart from data.",
+    inputSchema: {
+      filename: z.string().describe("Name for the downloaded file"),
+      chartConfig: z.any().describe("A complete, valid Chart.js configuration object. You must analyze the data and choose the most appropriate chart type. Please include visually distinct colors for datasets, ensure the chart is responsive, and include a title and tooltips."),
+    },
+    _meta: { ui: { resourceUri } },
+  },
+  async (args : any) => {
+    // The tool execution just passes the LLM's generated args right back 
+    // as the result, so the UI iframe can access them.
+    return {
+      content: [{ type: "text", text: JSON.stringify(args) }],
+    };
+  }
+);
+
+// Register the resource that serves the bundled HTML
+registerAppResource(
+  server,
+  resourceUri,
+  resourceUri,
+  { mimeType: RESOURCE_MIME_TYPE },
+  async () => {
+    const html = await fs.readFile(
+      path.join(import.meta.dirname, "ui", "chart-mcp-app.html"),
+      "utf-8",
+    );
+    return {
+      contents: [
+        { uri: resourceUri,
+          mimeType: RESOURCE_MIME_TYPE,
+          text: html,
+          _meta: {
+            ui: {
+              csp: {
+                connectDomains: [
+                  "https://cdn.jsdelivr.net",
+                ],
+                resourceDomains: [
+                  "https://cdn.jsdelivr.net",
+                ],
+              },
+              permissions: {
+                // Declare permissions your app needs to function. Hosts will prompt users to grant these permissions when they load your app.
+                'clipboardWrite': {}
+              },
+            },
+          },
+        },
+      ],
+    };
+  },
+);
+
+// Save Chart tool
+registerAppTool(
+  server,
+  "save-chart",
+  {
+    title: "Save Chart to Disk",
+    description: "INTERNAL SYSTEM TOOL. DO NOT CALL. This tool is strictly for the frontend UI iframe to execute native filesystem saves. You (the AI model) do not have access to the base64 canvas data required to use this tool. Any attempt by the AI to call this tool will fail. Ignore this tool entirely.",
+    inputSchema: {
+      filename: z.string().describe("The name of the file to save, including the .png extension"),
+      base64Data: z.string().describe("The base64 encoded PNG image string"),
+    },
+    _meta: {
+      ui: {
+        visibility: ["app"]
+      }
+    },
+  },
+  async (args : any) => {
+    try {
+      // 1. Strip off the "data:image/png;base64," prefix
+      const base64Data = args.base64Data.replace(/^data:image\/png;base64,/, "");
+
+      let saveDirectory: string;
+
+      // 2. Determine the target directory based on our hierarchy of rules
+      if (process.env.MCP_CHART_SAVE_DIR) {
+          // Highest Priority: Explicit override via environment variable
+          saveDirectory = process.env.MCP_CHART_SAVE_DIR;
+      } else if (isCloudEnvironment()) {
+          // Fallback 1: Cloud IDE detected. Save to the project root workspace.
+          saveDirectory = process.cwd(); 
+      } else {
+          // Fallback 2: Local machine. Save to the user's native Downloads folder.
+          saveDirectory = path.join(os.homedir(), "Downloads");
+      }
+
+      // 3. Construct the full file path
+      const savePath = path.join(saveDirectory, args.filename);
+
+      // 4. Ensure the target directory exists (creates it if missing, won't error if it exists)
+      await fs.mkdir(saveDirectory, { recursive: true });
+
+      // 5. Write the file to disk asynchronously
+      await fs.writeFile(savePath, base64Data, "base64");
+            
+      return {
+        content: [{ type: "text", text: `Successfully saved to ${savePath}` }]
+      };
+    } catch (error: any) {
+      console.error("Failed to save chart:", error);
+      return {
+        content: [{ type: "text", text: `Failed to save file: ${error.message}` }],
+        isError: true
       };
     }
   }
