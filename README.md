@@ -19,8 +19,7 @@ This MCP server provides access to various Vonage API functionalities through th
 |                               | `rcs-send-text`                        | Send text messages via RCS                                                                |
 |                               | `rcs-send-text-with-sms-failover`      | Send an RCS text message with automatic SMS failover                                      |
 |                               | `outbound-voice-message`               | Send outbound voice messages with Vonage                                                  |
-| **Data Visualization** | `make-chart`                                  | Create charts based on data retrieved                                                            |
-
+| **Data Visualization**        | `make-chart`                           | Create charts based on data retrieved                                                     |
 
 ### Usage Examples
 
