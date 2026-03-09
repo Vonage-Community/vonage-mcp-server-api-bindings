@@ -1,73 +1,76 @@
 <!-- chart-mcp-app.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vonage MCP Chart Viewer</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            background-color: #ffffff; /* Important for clean downloads */
-        }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            /* height: 60vh; */
-            height: 100%;
-        }
-        .controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        button {
-            padding: 10px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #fff;
-            background-color: #0066cc;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        button:hover {
-            background-color: #0052a3;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        #error-message {
-            color: #dc3545;
-            margin-top: 10px;
-            font-weight: 500;
-        }
-        canvas {
-            margin: auto;
-            height: 100%;
-            width: 100%;
-        }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        background-color: #ffffff; /* Important for clean downloads */
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        /* height: 60vh; */
+        height: 100%;
+      }
+      .controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        background-color: #0066cc;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      button:hover {
+        background-color: #0052a3;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #error-message {
+        color: #dc3545;
+        margin-top: 10px;
+        font-weight: 500;
+      }
+      canvas {
+        margin: auto;
+        height: 100%;
+        width: 100%;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="chart-container">
-        <canvas id="myChart"></canvas>
+      <canvas id="myChart"></canvas>
     </div>
-    
+
     <div class="controls">
-        <button id="downloadBtn" disabled>Download Chart</button>
-        <button id="copyBtn" disabled>Copy Chart to Clipboard</button>
+      <button id="downloadBtn" disabled>Download Chart</button>
+      <button id="copyBtn" disabled>Copy Chart to Clipboard</button>
     </div>
     <div id="error-message"></div>
 
     <script type="module" src="chart-mcp-app.js"></script>
-</body>
+  </body>
 </html>
