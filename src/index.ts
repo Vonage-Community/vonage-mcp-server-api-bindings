@@ -8,6 +8,10 @@ import { Auth } from '@vonage/auth';
 import { Channels, MessageTypes } from '@vonage/messages';
 import { NCCOBuilder, Talk } from '@vonage/voice';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { version } = require('../package.json') as { version: string };
+const USER_AGENT = `vonage-mcp-server-api-bindings/${version}`;
+
 const appId = process.env.VONAGE_APPLICATION_ID || '';
 const privateKey = Buffer.from(
   process.env.VONAGE_PRIVATE_KEY64 || '',
@@ -20,7 +24,8 @@ const vonage = new Vonage(
     apiSecret: process.env.VONAGE_API_SECRET!,
     applicationId: appId!,
     privateKey: privateKey,
-  })
+  }),
+  { appendUserAgent: USER_AGENT }
 );
 
 const virtualNumber = process.env.VONAGE_VIRTUAL_NUMBER;
@@ -545,23 +550,32 @@ server.registerTool(
   'search-available-numbers',
   {
     title: 'Search for available Vonage numbers to purchase',
-    description: 'Search for available phone numbers that can be purchased from Vonage in a specific country',
+    description:
+      'Search for available phone numbers that can be purchased from Vonage in a specific country',
     inputSchema: {
       country: z
         .string()
-        .describe('The two-character country code in ISO 3166-1 alpha-2 format, e.g. US, GB, DE'),
+        .describe(
+          'The two-character country code in ISO 3166-1 alpha-2 format, e.g. US, GB, DE'
+        ),
       pattern: z
         .string()
         .optional()
-        .describe('The number pattern to search for (optional). Use * to match any character.'),
+        .describe(
+          'The number pattern to search for (optional). Use * to match any character.'
+        ),
       features: z
         .string()
         .optional()
-        .describe('Comma-separated list of features (optional). Options: SMS, VOICE, MMS'),
+        .describe(
+          'Comma-separated list of features (optional). Options: SMS, VOICE, MMS'
+        ),
       size: z
         .number()
         .optional()
-        .describe('Maximum number of results to return (optional, default is 10, max is 100)'),
+        .describe(
+          'Maximum number of results to return (optional, default is 10, max is 100)'
+        ),
     },
   },
   async (args: any) => {
@@ -571,7 +585,7 @@ server.registerTool(
       features?: string;
       size?: number;
     };
-    
+
     try {
       const searchParams: any = {
         country: country.toUpperCase(),
@@ -582,7 +596,9 @@ server.registerTool(
       }
 
       if (features) {
-        searchParams.features = features.split(',').map((f: string) => f.trim().toUpperCase());
+        searchParams.features = features
+          .split(',')
+          .map((f: string) => f.trim().toUpperCase());
       }
 
       if (size) {
@@ -591,9 +607,14 @@ server.registerTool(
         searchParams.size = 10; // Default to 10
       }
 
-      const availableNumbers = await vonage.numbers.getAvailableNumbers(searchParams);
+      const availableNumbers =
+        await vonage.numbers.getAvailableNumbers(searchParams);
 
-      if (!availableNumbers || !availableNumbers.numbers || availableNumbers.numbers.length === 0) {
+      if (
+        !availableNumbers ||
+        !availableNumbers.numbers ||
+        availableNumbers.numbers.length === 0
+      ) {
         return {
           content: [
             {
@@ -605,15 +626,17 @@ server.registerTool(
       }
 
       // Format the results nicely
-      const numbersList = availableNumbers.numbers.map((num: any, index: number) => {
-        const features = [];
-        if (num.features) {
-          if (num.features.includes('VOICE')) features.push('Voice');
-          if (num.features.includes('SMS')) features.push('SMS');
-          if (num.features.includes('MMS')) features.push('MMS');
-        }
-        return `${index + 1}. ${num.msisdn} (${num.country}) - Features: ${features.join(', ') || 'None'} - Type: ${num.type || 'N/A'} - Cost: ${num.cost || 'N/A'}`;
-      }).join('\n');
+      const numbersList = availableNumbers.numbers
+        .map((num: any, index: number) => {
+          const features = [];
+          if (num.features) {
+            if (num.features.includes('VOICE')) features.push('Voice');
+            if (num.features.includes('SMS')) features.push('SMS');
+            if (num.features.includes('MMS')) features.push('MMS');
+          }
+          return `${index + 1}. ${num.msisdn} (${num.country}) - Features: ${features.join(', ') || 'None'} - Type: ${num.type || 'N/A'} - Cost: ${num.cost || 'N/A'}`;
+        })
+        .join('\n');
 
       return {
         content: [
@@ -878,6 +901,7 @@ server.registerTool(
         headers: {
           Authorization: `Basic ${credentials}`,
           'Content-Type': 'application/json',
+          'User-Agent': USER_AGENT,
         },
       });
 
