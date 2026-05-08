@@ -8,6 +8,10 @@ import { Auth } from '@vonage/auth';
 import { Channels, MessageTypes } from '@vonage/messages';
 import { NCCOBuilder, Talk } from '@vonage/voice';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { version } = require('../package.json') as { version: string };
+const USER_AGENT = `vonage-mcp-server-api-bindings/${version}`;
+
 const appId = process.env.VONAGE_APPLICATION_ID || '';
 const privateKey = Buffer.from(
   process.env.VONAGE_PRIVATE_KEY64 || '',
@@ -20,7 +24,8 @@ const vonage = new Vonage(
     apiSecret: process.env.VONAGE_API_SECRET!,
     applicationId: appId!,
     privateKey: privateKey,
-  })
+  }),
+  { appendUserAgent: USER_AGENT }
 );
 
 const virtualNumber = process.env.VONAGE_VIRTUAL_NUMBER;
@@ -878,6 +883,7 @@ server.registerTool(
         headers: {
           Authorization: `Basic ${credentials}`,
           'Content-Type': 'application/json',
+          'User-Agent': USER_AGENT,
         },
       });
 
