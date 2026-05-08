@@ -19,6 +19,7 @@ This MCP server provides access to various Vonage API functionalities through th
 |                               | `rcs-send-text`                        | Send text messages via RCS                                                                |
 |                               | `rcs-send-text-with-sms-failover`      | Send an RCS text message with automatic SMS failover                                      |
 |                               | `outbound-voice-message`               | Send outbound voice messages with Vonage                                                  |
+| **Data Visualization**        | `make-chart`                           | Create charts based on data retrieved                                                     |
 
 ### Usage Examples
 
@@ -110,6 +111,12 @@ Can you send an RCS message to +1234567890 with the message "Hello from Vonage v
 
 ```
 Can you send an RCS message with SMS failover to +1234567890 saying "Hello from Vonage RCS with fallback!"?
+```
+
+#### Generate a Chart
+
+```
+Please create a chart showing all the outbound SMS sent over the last week.
 ```
 
 ## Set up the MCP server
