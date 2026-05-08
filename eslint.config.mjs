@@ -56,6 +56,15 @@ export default [
     },
   },
   {
+    files: ['src/ui/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        Chart: 'readonly',
+      },
+    },
+  },
+  {
     ignores: ['build/', 'dist/', 'node_modules/', '*.d.ts', 'coverage/'],
   },
 ];

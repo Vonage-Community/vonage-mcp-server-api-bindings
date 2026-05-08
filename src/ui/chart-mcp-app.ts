@@ -43,7 +43,7 @@ app.ontoolresult = result => {
     }
 
     // 5. Render the new chart
-    // @ts-ignore - Assuming Chart is loaded globally via CDN in HTML
+    // @ts-expect-error - Chart is loaded globally via CDN in HTML
     currentChart = new Chart(canvas, {
       ...args.chartConfig,
       plugins: [
@@ -89,7 +89,7 @@ downloadBtn.addEventListener('click', async () => {
     const base64String = commaIdx >= 0 ? dataUrl.slice(commaIdx + 1) : dataUrl;
 
     // 3. Call the new save_chart tool on your server with raw base64
-    const result = await app.callServerTool({
+    await app.callServerTool({
       name: 'save_chart',
       arguments: {
         filename,
