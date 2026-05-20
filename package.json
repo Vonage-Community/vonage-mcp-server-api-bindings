@@ -2,7 +2,9 @@
   "name": "@vonage/vonage-mcp-server-api-bindings",
   "version": "1.5.0",
   "main": "build/index.js",
-  "bin": "build/index.js",
+  "bin": {
+    "vonage-mcp-server-api-bindings": "build/index.js"
+  },
   "mcpName": "io.github.Vonage-Community/vonage-mcp-server-api-bindings",
   "type": "module",
   "scripts": {
