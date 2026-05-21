@@ -45,11 +45,10 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
         run: npm version ${{ github.event.inputs.version }} --no-git-tag-version
 
-      - name: Remove static auth token to enable OIDC Trusted Publishing
-        run: npm config delete //registry.npmjs.org/:_authToken
-
       - name: Publish to NPM
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release (for tag pushes)
         if: startsWith(github.ref, 'refs/tags/')
