@@ -11,13 +11,14 @@ import {
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
+import { createRequire } from 'node:module';
 
 import { Vonage } from '@vonage/server-sdk';
 import { Auth } from '@vonage/auth';
 import { Channels, MessageTypes } from '@vonage/messages';
 import { NCCOBuilder, Talk } from '@vonage/voice';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };
 const USER_AGENT = `vonage-mcp-server-api-bindings/${version}`;
 
