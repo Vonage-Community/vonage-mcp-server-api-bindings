@@ -152,3 +152,20 @@ The details of the MCP server should look like this.
 > private key file into the encoded string that you can copy and paste. Everything is done in your
 > browser, no information is sent anywhere:
 > [https://mylight.work/private-key-to-environment-variable](https://mylight.work/private-key-to-environment-variable)
+
+## Security
+
+### STDIO transport
+
+This server runs locally and talks to your MCP client (VS Code, Cursor, Claude Desktop, etc.) over
+STDIO. Tool calls and their responses travel between the two processes as plaintext JSON-RPC. There
+is no transport-layer encryption or authentication on this channel, which is how local MCP servers
+are designed to work.
+
+That is safe on a single-user machine you trust, which is the intended way to run this server. Keep
+in mind that:
+
+- Any process with enough privilege on the same machine can read or tamper with the STDIO stream. If
+  the machine is compromised, the server cannot protect the data passing through it.
+- In shared, multi-user, or containerised environments, other users or workloads may be able to
+  observe the process. Only run the server where you trust everything else running alongside it.
