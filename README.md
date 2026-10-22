@@ -148,10 +148,29 @@ The details of the MCP server should look like this.
 }
 ```
 
-> Right now, we only use a base64 encoded Private Key. I created a tool that will convert the
-> private key file into the encoded string that you can copy and paste. Everything is done in your
-> browser, no information is sent anywhere:
-> [https://mylight.work/private-key-to-environment-variable](https://mylight.work/private-key-to-environment-variable)
+### Encoding your private key
+
+`VONAGE_PRIVATE_KEY64` must be your application's private key file, base64 encoded on a single line.
+Run one of these commands locally, replacing `private.key` with the path to your key file, and paste
+the output into your config:
+
+macOS:
+
+```bash
+base64 -i private.key
+```
+
+Linux:
+
+```bash
+base64 -w 0 private.key
+```
+
+Windows PowerShell:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path .\private.key)))
+```
 
 ## Security
 
@@ -169,3 +188,21 @@ in mind that:
   the machine is compromised, the server cannot protect the data passing through it.
 - In shared, multi-user, or containerised environments, other users or workloads may be able to
   observe the process. Only run the server where you trust everything else running alongside it.
+
+### Storing credentials
+
+The setup above puts your Vonage credentials, including `VONAGE_PRIVATE_KEY64`, into your MCP
+client's config file (for example `claude_desktop_config.json` or `.cursor/mcp.json`) as plaintext.
+Any process running as your user can read that file, and it is easy to leak by accident.
+
+- Treat `VONAGE_PRIVATE_KEY64` like a private SSH key. Anyone who has it can act as your Vonage
+  application.
+- If the config file lives inside a project, such as `.cursor/mcp.json` or `.vscode/mcp.json`, add
+  it to that project's `.gitignore` so it is never committed.
+- Cloud sync services (iCloud, Dropbox, OneDrive, Google Drive) can silently upload config
+  directories. Exclude those directories from sync, or keep credential-bearing config files outside
+  synced folders.
+- For stronger protection, keep secrets in your operating system's secret store instead: macOS
+  Keychain, Windows Credential Manager, or the Linux Secret Service (for example GNOME Keyring or
+  KWallet). Wiring the store into your MCP client's environment is up to you and depends on the
+  client.
