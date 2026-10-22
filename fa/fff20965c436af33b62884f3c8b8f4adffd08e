@@ -1,0 +1,20 @@
+README.md
+  s_f66dee70d62ffc::t_196722b99c9332 205-215,219-296
+  s_f66dee70d62ffc::t_5d70f476eb48c1 216-218
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fafff20965c436af33b62884f3c8b8f4adffd08e",
+  "prompts": {},
+  "sessions": {
+    "s_f66dee70d62ffc": {
+      "agent_id": {
+        "tool": "kiro",
+        "id": "sess_d1189c75-9816-4998-b58b-74f8b0d11fa4",
+        "model": "auto"
+      },
+      "human_author": "Chris Tankersley <chris@ctankersley.com>"
+    }
+  }
+}
