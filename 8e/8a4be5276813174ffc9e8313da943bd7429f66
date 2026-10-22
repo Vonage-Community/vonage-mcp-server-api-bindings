@@ -1,0 +1,19 @@
+src/index.ts
+  s_f66dee70d62ffc::t_3bf0a75d69a920 35-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8e8a4be5276813174ffc9e8313da943bd7429f66",
+  "prompts": {},
+  "sessions": {
+    "s_f66dee70d62ffc": {
+      "agent_id": {
+        "tool": "kiro",
+        "id": "sess_d1189c75-9816-4998-b58b-74f8b0d11fa4",
+        "model": "auto"
+      },
+      "human_author": null
+    }
+  }
+}
