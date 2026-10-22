@@ -202,7 +202,95 @@ Any process running as your user can read that file, and it is easy to leak by a
 - Cloud sync services (iCloud, Dropbox, OneDrive, Google Drive) can silently upload config
   directories. Exclude those directories from sync, or keep credential-bearing config files outside
   synced folders.
-- For stronger protection, keep secrets in your operating system's secret store instead: macOS
-  Keychain, Windows Credential Manager, or the Linux Secret Service (for example GNOME Keyring or
-  KWallet). Wiring the store into your MCP client's environment is up to you and depends on the
-  client.
+- For stronger protection, keep the secrets out of the config file entirely. The options are below.
+
+#### Keeping secrets out of the config file
+
+The server only reads credentials from its environment, so the goal is to have your MCP client
+supply `VONAGE_PRIVATE_KEY64` and `VONAGE_API_SECRET` at launch without writing them into a file.
+This protects the credentials at rest. Once the server is running, they are still in its
+environment.
+
+**macOS (Keychain)**
+
+Store the secrets in your login Keychain. The private key is too long to paste at a terminal prompt,
+so the first command reads it straight from the key file. The second command ends with `-w`, which
+makes `security` prompt for the API secret so it doesn't end up in your shell history:
+
+```bash
+security add-generic-password -a "$USER" -s vonage-mcp-private-key64 -w "$(base64 -i private.key)"
+security add-generic-password -a "$USER" -s vonage-mcp-api-secret -w
+```
+
+Then launch the server through a shell that reads them from Keychain, and keep only the non-secret
+values in `env`:
+
+```JSON
+"vonage-mcp-server-api-bindings": {
+    "type": "stdio",
+    "command": "/bin/sh",
+    "args": [
+        "-c",
+        "VONAGE_PRIVATE_KEY64=$(security find-generic-password -s vonage-mcp-private-key64 -w) || exit 1; VONAGE_API_SECRET=$(security find-generic-password -s vonage-mcp-api-secret -w) || exit 1; export VONAGE_PRIVATE_KEY64 VONAGE_API_SECRET; exec npx -y @vonage/vonage-mcp-server-api-bindings"
+    ],
+    "env": {
+        "VONAGE_APPLICATION_ID": "<YOUR_VONAGE_APPLICATION_ID>",
+        "VONAGE_API_KEY": "<YOUR_VONAGE_API_KEY>",
+        "VONAGE_VIRTUAL_NUMBER": "<YOUR_VONAGE_VIRTUAL_NUMBER>",
+        "VONAGE_WHATSAPP_NUMBER": "<YOUR_VONAGE_WHATSAPP_NUMBER>",
+        "RCS_SENDER_ID": "<YOUR_RCS_SENDER_ID>"
+    }
+}
+```
+
+The first time the server starts, macOS may ask whether `security` can access the items. Choose
+**Always Allow** so later launches don't prompt.
+
+**VS Code (input variables)**
+
+VS Code can prompt for a secret the first time the server starts and store it securely, using input
+variables in `.vscode/mcp.json` or your user-profile `mcp.json`:
+
+```JSON
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "vonage-private-key64",
+      "description": "Vonage private key (base64)",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "vonage-api-secret",
+      "description": "Vonage API secret",
+      "password": true
+    }
+  ],
+  "servers": {
+    "vonage-mcp-server-api-bindings": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@vonage/vonage-mcp-server-api-bindings"],
+      "env": {
+        "VONAGE_APPLICATION_ID": "<YOUR_VONAGE_APPLICATION_ID>",
+        "VONAGE_API_KEY": "<YOUR_VONAGE_API_KEY>",
+        "VONAGE_PRIVATE_KEY64": "${input:vonage-private-key64}",
+        "VONAGE_API_SECRET": "${input:vonage-api-secret}"
+      }
+    }
+  }
+}
+```
+
+Add the remaining non-secret variables from the setup example to `env` as needed. VS Code doesn't
+forward servers that use input variables to Copilot harness sessions. See the
+[VS Code MCP configuration reference](https://code.visualstudio.com/docs/copilot/reference/mcp-configuration)
+for details.
+
+**Linux and Windows**
+
+Neither has a secret store with a command-line client that is installed and working by default. If
+you already use one, such as `secret-tool` with GNOME Keyring or PowerShell SecretManagement, you
+can apply the same pattern as the macOS example: launch the server through a shell that reads the
+secrets and exports them before starting it. Otherwise, follow the file-handling guidance above.
