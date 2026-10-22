@@ -32,9 +32,9 @@ const privateKey = Buffer.from(
 
 const vonage = new Vonage(
   new Auth({
-    apiKey: process.env.VONAGE_API_KEY!,
-    apiSecret: process.env.VONAGE_API_SECRET!,
-    applicationId: appId!,
+    apiKey: process.env.VONAGE_API_KEY,
+    apiSecret: process.env.VONAGE_API_SECRET,
+    applicationId: appId,
     privateKey: privateKey,
   }),
   { appendUserAgent: USER_AGENT }
@@ -435,7 +435,7 @@ Workflow ID: ${workflowId}`,
         ],
         from: {
           type: 'phone',
-          number: virtualNumber!,
+          number: virtualNumber,
         },
       });
 
@@ -896,8 +896,8 @@ server.registerTool(
     };
 
     try {
-      const apiKey = process.env.VONAGE_API_KEY!;
-      const apiSecret = process.env.VONAGE_API_SECRET!;
+      const apiKey = process.env.VONAGE_API_KEY ?? '';
+      const apiSecret = process.env.VONAGE_API_SECRET ?? '';
       const resolvedAccountId = account_id || apiKey;
 
       const params = new URLSearchParams();
