@@ -1,0 +1,25 @@
+src/index.ts
+  s_f66dee70d62ffc::t_5e4c77e753b154 527
+src/createApplication.ts
+  s_f66dee70d62ffc::t_33458d26afd15d 1-57
+package.json
+  s_f66dee70d62ffc::t_98faeeebc6e889 11
+test/createApplication.test.ts
+  s_f66dee70d62ffc::t_df4e6310a0810b 1-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "63a3ae65266f65434ef05d87e5493278e39aeb9b",
+  "prompts": {},
+  "sessions": {
+    "s_f66dee70d62ffc": {
+      "agent_id": {
+        "tool": "kiro",
+        "id": "sess_d1189c75-9816-4998-b58b-74f8b0d11fa4",
+        "model": "auto"
+      },
+      "human_author": "Chris Tankersley <chris@ctankersley.com>"
+    }
+  }
+}
