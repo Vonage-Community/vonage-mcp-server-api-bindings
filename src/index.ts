@@ -18,6 +18,8 @@ import { Auth } from '@vonage/auth';
 import { Channels, MessageTypes } from '@vonage/messages';
 import { NCCOBuilder, Talk } from '@vonage/voice';
 
+import { formatCreateApplicationResponse } from './createApplication.js';
+
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };
 const USER_AGENT = `vonage-mcp-server-api-bindings/${version}`;
@@ -522,12 +524,7 @@ server.registerTool(
         content: [
           {
             type: 'text',
-            text: `Application created successfully:
-Name: ${application.name}
-Application ID: ${application.id}
-${application.keys?.private_key ? `Private Key: ${application.keys.private_key}` : ''}
-
-Full details: ${JSON.stringify(application, null, 2)}`,
+            text: formatCreateApplicationResponse(application),
           },
         ],
       };

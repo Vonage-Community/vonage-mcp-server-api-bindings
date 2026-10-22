@@ -8,7 +8,7 @@
   "mcpName": "io.github.Vonage-Community/vonage-mcp-server-api-bindings",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test \"test/**/*.test.ts\"",
     "build": "tsc && chmod +x build/index.js && npm run build:mcp-apps",
     "build:mcp-apps": "vite build",
     "clean": "rm -rf build",
