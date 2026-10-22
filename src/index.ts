@@ -18,6 +18,8 @@ import { Auth } from '@vonage/auth';
 import { Channels, MessageTypes } from '@vonage/messages';
 import { NCCOBuilder, Talk } from '@vonage/voice';
 
+import { formatCreateApplicationResponse } from './createApplication.js';
+
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };
 const USER_AGENT = `vonage-mcp-server-api-bindings/${version}`;
@@ -30,9 +32,9 @@ const privateKey = Buffer.from(
 
 const vonage = new Vonage(
   new Auth({
-    apiKey: process.env.VONAGE_API_KEY!,
-    apiSecret: process.env.VONAGE_API_SECRET!,
-    applicationId: appId!,
+    apiKey: process.env.VONAGE_API_KEY,
+    apiSecret: process.env.VONAGE_API_SECRET,
+    applicationId: appId,
     privateKey: privateKey,
   }),
   { appendUserAgent: USER_AGENT }
@@ -433,7 +435,7 @@ Workflow ID: ${workflowId}`,
         ],
         from: {
           type: 'phone',
-          number: virtualNumber!,
+          number: virtualNumber,
         },
       });
 
@@ -522,12 +524,7 @@ server.registerTool(
         content: [
           {
             type: 'text',
-            text: `Application created successfully:
-Name: ${application.name}
-Application ID: ${application.id}
-${application.keys?.private_key ? `Private Key: ${application.keys.private_key}` : ''}
-
-Full details: ${JSON.stringify(application, null, 2)}`,
+            text: formatCreateApplicationResponse(application),
           },
         ],
       };
@@ -899,8 +896,8 @@ server.registerTool(
     };
 
     try {
-      const apiKey = process.env.VONAGE_API_KEY!;
-      const apiSecret = process.env.VONAGE_API_SECRET!;
+      const apiKey = process.env.VONAGE_API_KEY ?? '';
+      const apiSecret = process.env.VONAGE_API_SECRET ?? '';
       const resolvedAccountId = account_id || apiKey;
 
       const params = new URLSearchParams();
