@@ -1,0 +1,49 @@
+src/auditLog.ts
+  s_f66dee70d62ffc::t_c90899d21f3d9b 61
+  s_f305e67c240b32::t_a2d81c67d8a5b4 8-10,19,22,25,54-56,62,64,66,69,74,79,95,116,123,129,134,142,175-176
+  s_f66dee70d62ffc::t_e63896b459f4ba 31-33
+  s_f66dee70d62ffc::t_884e8dc7b5da1f 1-7,11-18,20-21,23-24,26-30,34-49,51-53,57-59,63,65,67-68,70-73,75-78,80-94,96-115,117-122,124-128,130-133,135-141,143-174,177-195
+  s_f66dee70d62ffc::t_2502fc2fc78f73 50
+  s_f66dee70d62ffc::t_e13aab0ba3682a 60
+  s_f66dee70d62ffc::t_7cc08aff8d424a 196-197
+test/auditLog.test.ts
+  s_f305e67c240b32::t_4adb3b37a4f20d 98,104,112,118,123
+  s_f305e67c240b32::t_782ee773e98bb1 145,154-155,160-161,164,167
+  s_f66dee70d62ffc::t_d2a967f49ed395 74,91
+  s_f66dee70d62ffc::t_a41b0c7deb67c0 1-48,50,52-55,57-73,75-77,79-90,92-97,99-103,105-111,113-117,119-122,124-144,146-153,156-159,162-163,165-166,168-316
+  s_f66dee70d62ffc::t_ae1b32a910828e 49
+  s_f66dee70d62ffc::t_73b77bc2a2e13e 51
+  s_f66dee70d62ffc::t_3e358684f1a014 56
+  s_f66dee70d62ffc::t_bac41f0ea79cae 78
+README.md
+  s_f305e67c240b32::t_a824d84dfedf95 191,204-205
+  s_f66dee70d62ffc::t_6a5b864ba81fa2 175-190,192-203,206-208
+src/index.ts
+  s_f66dee70d62ffc::t_ba2e08a2727bed 167-170
+package.json
+  s_f305e67c240b32::t_0dfadee1dc5cfd 41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9d39a93fe3ba0165c693267b3ffdc981a8a6cbed",
+  "prompts": {},
+  "sessions": {
+    "s_f305e67c240b32": {
+      "agent_id": {
+        "tool": "kiro",
+        "id": "sess_478baf07-6872-4ef6-a182-df8962509479",
+        "model": "auto"
+      },
+      "human_author": "Chris Tankersley <chris@ctankersley.com>"
+    },
+    "s_f66dee70d62ffc": {
+      "agent_id": {
+        "tool": "kiro",
+        "id": "sess_d1189c75-9816-4998-b58b-74f8b0d11fa4",
+        "model": "auto"
+      },
+      "human_author": "Chris Tankersley <chris@ctankersley.com>"
+    }
+  }
+}
