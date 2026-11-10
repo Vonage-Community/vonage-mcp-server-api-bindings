@@ -38,10 +38,12 @@
     "@vonage/messages": "^1.20.3",
     "@vonage/server-sdk": "^3.25.1",
     "@vonage/voice": "^1.18.0",
+    "debug": "^4.4.3",
     "dotenv": "^17.2.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/debug": "^4.1.13",
     "@types/node": "^24.0.14",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",

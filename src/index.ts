@@ -19,6 +19,7 @@ import { Channels, MessageTypes } from '@vonage/messages';
 import { NCCOBuilder, Talk } from '@vonage/voice';
 
 import { formatCreateApplicationResponse } from './createApplication.js';
+import { enableAuditLogging } from './auditLog.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };
@@ -162,6 +163,10 @@ const server = new McpServer({
   name: 'vonage-mcp-server-api-bindings',
   version: '0.0.1',
 });
+
+// Log every tool call when DEBUG=vonage:mcp-server is set. Must run before
+// any tools are registered.
+enableAuditLogging(server);
 
 // Get account balance
 server.registerTool(

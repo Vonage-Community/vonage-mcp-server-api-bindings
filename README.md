@@ -172,6 +172,40 @@ Windows PowerShell:
 [Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path .\private.key)))
 ```
 
+## Debug logging
+
+The server can log every tool call to stderr. Turn it on by adding `DEBUG` to the `env` block of
+your MCP config:
+
+```JSON
+"env": {
+    "DEBUG": "vonage:mcp-server",
+    ...
+}
+```
+
+Each tool call produces one line with a timestamp, the tool name, its input, the outcome (success or
+error, with the error message), and how long it took. Where the output ends up depends on your MCP
+client; most clients write each server's stderr to a log file or an output panel.
+
+The log is safe to share for troubleshooting:
+
+- Phone numbers and account IDs are masked to their last four characters, e.g. `********2671`, so
+  you can still match a log line to a specific call.
+- Message text, chart data, and tool results are left out.
+- Credentials and private keys are never logged.
+
+### Logging raw API requests
+
+The Vonage SDK has its own debug output, which logs every HTTP request and response this server
+makes. Turn it on with `DEBUG=vonage:*`, or `DEBUG=vonage:server-client` for the request log on its
+own.
+
+This output comes from the SDK, not from this server, so none of the masking above applies to it. It
+includes request headers and bodies. The `Authorization` header contains your API key and secret, or
+a signed token that can be used to call the API as you until it expires. Only use it on your own
+machine for short debugging sessions, never share the output, and delete the logs afterwards.
+
 ## Security
 
 ### STDIO transport
